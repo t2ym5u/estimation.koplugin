@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.4] - 2026-11-04
+
+### Changed
+- Uses less memory: the game loads when you open it, not when KOReader
+  starts, so it no longer takes memory or startup time while unplayed.
+- Uses less memory: the questions load when the game opens, only for the
+  language played, and are freed when it closes.
+
 ## [1.0.3] - 2026-11-03
 
 ### Changed

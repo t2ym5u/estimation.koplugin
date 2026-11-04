@@ -7,7 +7,7 @@
 -- A question that only makes sense in one language leaves the other pair nil
 -- (French-flavoured trivia, say). Ids are "<category>:<index>", so new
 -- questions must be appended at the end of a file, never inserted.
--- Files are read on first use only.
+-- Files are read on first use only, and only one language's questions kept.
 
 local _dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
 
@@ -103,12 +103,13 @@ Questions.UNITS = {
     },
 }
 
-local raw      -- category -> list of raw entries
+-- The files hold both languages: they are read when a language is first
+-- needed, only its questions are kept (by_lang), and the rest is dropped.
+-- Questions.release() (the screen closing) drops the kept ones too.
 local by_lang  = {}
 
 local function loadRaw()
-    if raw then return raw end
-    raw = {}
+    local raw = {}
     for _i, cat in ipairs(Questions.CATEGORIES) do
         local chunk = loadfile(_dir .. "q_" .. cat .. ".lua")
         local ok, list = false, nil
@@ -124,9 +125,10 @@ function Questions.forLanguage(lang)
     if by_lang[lang] then return by_lang[lang] end
     local units = Questions.UNITS[lang] or Questions.UNITS.en
     local out = { ids = {}, by_cat = {} }
+    local raw = loadRaw()
     for _i, cat in ipairs(Questions.CATEGORIES) do
         out.by_cat[cat] = {}
-        for i, e in ipairs(loadRaw()[cat]) do
+        for i, e in ipairs(raw[cat]) do
             local q, f
             if lang == "fr" then q, f = e[5], e[6] else q, f = e[3], e[4] end
             if q then
@@ -148,7 +150,8 @@ function Questions.forLanguage(lang)
             end
         end
     end
-    by_lang[lang] = out
+    -- Only one language at a time: switching drops the previous one.
+    by_lang = { [lang] = out }
     return out
 end
 
@@ -162,6 +165,20 @@ function Questions.pool(lang, cats)
             for _i, id in ipairs(bank.by_cat[cat]) do out[#out + 1] = id end
         end
     end
+    return out
+end
+
+-- Drops every loaded question bank (called when the game screen closes); the
+-- next game reads its language's questions again.
+function Questions.release()
+    by_lang = {}
+end
+
+-- The languages whose questions are loaded now (for the specs).
+function Questions.loadedLanguages()
+    local out = {}
+    for lang in pairs(by_lang) do out[#out + 1] = lang end
+    table.sort(out)
     return out
 end
 
