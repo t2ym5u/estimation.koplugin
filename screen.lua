@@ -885,4 +885,10 @@ function EstimationScreen:_scoreLine()
     return self:joinStatus((table.unpack or unpack)(parts))
 end
 
+-- The questions are only needed while a game is open: drop them when the
+-- screen closes (the next game reads its language's questions again).
+function EstimationScreen:onCloseWidget()
+    Questions.release()
+end
+
 return EstimationScreen

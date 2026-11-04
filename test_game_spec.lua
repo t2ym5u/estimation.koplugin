@@ -186,3 +186,19 @@ describe("Estimation question bank", function()
         end
     end)
 end)
+
+-- The questions load with the first game of a language, only that language's,
+-- and release() (the screen closing) drops them.
+describe("Estimation question loading", function()
+    it("loads nothing on require, one language on demand, none after release", function()
+        local Q = dofile(DIR .. "questions.lua")
+        assert.are.same({}, Q.loadedLanguages())
+        local ids = Q.pool("fr", nil)
+        assert.are.same({ "fr" }, Q.loadedLanguages())
+        Q.release()
+        assert.are.same({}, Q.loadedLanguages())
+        -- Read again, the same ids in the same order (no-repeat history).
+        assert.are.same(ids, Q.pool("fr", nil))
+        Q.release()
+    end)
+end)
