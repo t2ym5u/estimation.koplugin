@@ -182,7 +182,7 @@ local EstimationScreen = ScreenBase:extend{}
 
 function EstimationScreen:init()
     local p = self.plugin
-    self.lang     = p:getSetting("lang", _.lang() == "fr" and "fr" or "en")
+    self.lang     = p:getLang({ "fr", "en" })
     self.nplayers = p:getSetting("players", 3)
     self.nq       = p:getSetting("questions", 10)
     self.mode     = p:getSetting("scoring", "closest")
@@ -489,7 +489,11 @@ function EstimationScreen:openLangMenu()
         items      = { { id = "fr", text = "Français" }, { id = "en", text = "English" } },
         current_id = self.lang,
         parent     = self,
-        on_select  = function(id) self:_setAndRestart("lang", "lang", id) end,
+        on_select  = function(id)
+            self.lang = id
+            self.plugin:setLang(id)
+            self:onNewGame()
+        end,
     }
 end
 
